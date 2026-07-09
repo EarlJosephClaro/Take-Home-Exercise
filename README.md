@@ -2,8 +2,9 @@
 
 A small REST API that shortens URLs, redirects short codes to their target, and
 reports per-link click statistics. Built with **TypeScript + Express** and
-backed by **SQLite**. Ships with a lightweight **web UI** (served at `/`) for
-trying the API from a browser.
+backed by **SQLite**. Ships with a lightweight **web UI** (served at `/`) and
+**interactive API docs** (Swagger UI at `/docs`) for trying the API from a
+browser.
 
 ---
 
@@ -11,10 +12,13 @@ trying the API from a browser.
 
 - [Quick start](#quick-start)
 - [API](#api)
+- [Web UI](#web-ui)
+- [Architecture](#architecture)
 - [Running with Docker](#running-with-docker)
 - [Testing](#testing)
 - [Design decisions](#design-decisions)
 - [Tradeoffs & known limitations](#tradeoffs--known-limitations)
+- [Troubleshooting](#troubleshooting)
 - [What's next](#whats-next)
 - [Project layout](#project-layout)
 
@@ -61,6 +65,19 @@ All settings come from environment variables (see [`.env.example`](.env.example)
 ---
 
 ## API
+
+A summary follows. For the **full reference** (every field, status code, and
+curl example) see **[`docs/API.md`](docs/API.md)**, the **interactive Swagger UI
+at [`/docs`](http://localhost:8787/docs)**, or the raw
+[`/openapi.json`](http://localhost:8787/openapi.json) spec.
+
+| Method | Path                  | Purpose                                    | Success |
+| ------ | --------------------- | ------------------------------------------ | ------- |
+| POST   | `/shorten`            | Create a short code for a URL              | `201`   |
+| GET    | `/:short_code`        | Redirect to the original URL (records hit) | `302`   |
+| GET    | `/stats/:short_code`  | Total hits + 30-day daily breakdown        | `200`   |
+| GET    | `/health`             | Liveness probe                             | `200`   |
+| GET    | `/docs`, `/openapi.json` | API documentation                       | `200`   |
 
 ### `POST /shorten`
 
@@ -116,6 +133,16 @@ Redirects to the original URL and records a hit.
 
 `200 OK` → `{ "status": "ok" }`. Used by the Docker health check.
 
+### Errors
+
+All errors return JSON `{ "error": "<message>" }` with an appropriate status:
+
+| Code | When                                                            |
+| ---- | -------------------------------------------------------------- |
+| 400  | Missing/empty/oversized `url`, malformed URL, non-http(s) scheme. |
+| 404  | Unknown short code, or any unmatched route.                     |
+| 500  | Unexpected server error (logged server-side, opaque to client). |
+
 ---
 
 ## Web UI
@@ -130,9 +157,43 @@ A dependency-free single page is served at `/` (static files in
   only).
 
 It's plain HTML/CSS/vanilla JS with no build step or external assets, so it adds
-nothing to the dependency surface and works offline once loaded. Static requests
-are served before the API router; anything that isn't a real asset falls through
-to the `/:short_code` redirect route.
+nothing to the dependency surface and works offline once loaded. It also
+includes a collapsible **"How it works & API reference"** panel linking to the
+Swagger UI. Static requests are served before the API router; anything that
+isn't a real asset falls through to the `/:short_code` redirect route.
+
+---
+
+## Architecture
+
+A single Express process. Requests flow through a fixed middleware order so the
+UI, docs, and API coexist without route collisions:
+
+```
+                      ┌─────────────────────────────────────────────┐
+   HTTP request  ───▶ │ express.json  →  static (public/)            │
+                      │   → /openapi.json  → /docs (Swagger UI)      │
+                      │   → router: /health, POST /shorten,          │
+                      │             /stats/:code, /:code (redirect)  │
+                      │   → 404  → error handler                     │
+                      └──────────────────────┬──────────────────────┘
+                                             │
+        composition root (server.ts)         ▼
+   createDb(path) ──▶ UrlStore(db) ──▶ createApp(store, config) ──▶ listen
+        │                   │
+        ▼                   ▼
+   SQLite (better-      prepared statements:
+   sqlite3, WAL)        urls (code → url) + clicks (url_id, day → count)
+```
+
+- **`server.ts`** is the only place that touches the environment and opens the
+  database. Everything else receives its dependencies as arguments, which is
+  what lets the tests build the whole app over an in-memory database.
+- **`UrlStore`** owns all SQL via prepared statements. Redirects UPSERT a daily
+  counter; stats read those counters back and zero-fill the 30-day window.
+- **Layering:** `routes` (HTTP) → `store` (data access) → `lib` (pure helpers:
+  code generation, validation, date math). `lib` has no I/O and is unit-tested
+  in isolation.
 
 ---
 
@@ -241,6 +302,28 @@ validation rejects everything except absolute `http`/`https` URLs — blocking
 
 ---
 
+## Troubleshooting
+
+- **Port already in use** (`EADDRINUSE`) — the default is `8787` (chosen to
+  avoid other local services). Pick another with the `PORT` env var:
+  ```bash
+  PORT=9099 npm run dev          # macOS/Linux
+  ```
+  ```powershell
+  $env:PORT=9099; npm run dev    # Windows PowerShell
+  ```
+  If you change the port behind a proxy/domain, set `BASE_URL` too so the
+  returned `short_url`s are correct.
+- **`make: command not found`** (common on Windows) — use the npm scripts
+  directly: `npm ci`, `npm run build`, `npm start`, `npm test`.
+- **`better-sqlite3` build errors on install** — it ships prebuilt binaries for
+  common platforms; if yours needs a compile, ensure Python 3 and a C++ toolchain
+  are present (the Docker build installs these automatically).
+- **Reset local data** — delete the `data/` directory (gitignored); it's
+  recreated empty on the next start.
+
+---
+
 ## What's next
 
 Given more time, in rough priority order:
@@ -255,7 +338,8 @@ Given more time, in rough priority order:
 4. **Richer analytics** — opt-in per-hit events (timestamp, referrer, coarse
    geo) in a separate table, with the daily counters kept as the fast path.
 5. **Custom/vanity codes** and **expiring links** (TTL + a cleanup job).
-6. **OpenAPI spec** and generated client, plus structured logging and metrics.
+6. **Generated API client** from the existing OpenAPI spec, plus structured
+   logging and metrics.
 7. **CI** running `make test`, lint, and a Docker build on every push.
 
 ---
@@ -266,8 +350,9 @@ Given more time, in rough priority order:
 src/
   config.ts            env-driven configuration
   server.ts            composition root: db -> store -> app -> listen
-  app.ts               Express wiring (middleware, router, error handling)
+  app.ts               Express wiring (middleware, static, docs, router)
   routes.ts            route handlers + 404/error middleware
+  openapi.ts           OpenAPI 3 spec (served at /openapi.json and /docs)
   db/index.ts          SQLite connection, pragmas, schema/migrations
   store/urlStore.ts    data-access layer (prepared statements)
   lib/
@@ -275,6 +360,7 @@ src/
     validation.ts      URL validation & normalization
     stats.ts           UTC day math + dense daily series
 public/                web UI (index.html, styles.css, app.js) served at /
+docs/API.md            full HTTP API reference
 tests/
   unit/                shortCode, validation, stats, urlStore
   integration/         full HTTP surface via supertest

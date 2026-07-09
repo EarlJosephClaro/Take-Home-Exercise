@@ -126,6 +126,20 @@ describe('URL shortener API', () => {
       expect(res.headers['content-type']).toMatch(/javascript/);
     });
 
+    it('serves the OpenAPI spec', async () => {
+      const res = await request(app).get('/openapi.json').expect(200);
+      expect(res.body.openapi).toMatch(/^3\./);
+      expect(res.body.info.title).toBe('URL Shortener API');
+      expect(res.body.paths['/shorten']).toBeDefined();
+      // Server URL reflects the injected config.
+      expect(res.body.servers[0].url).toBe(TEST_CONFIG.baseUrl);
+    });
+
+    it('serves Swagger UI at /docs', async () => {
+      const res = await request(app).get('/docs/').expect(200);
+      expect(res.headers['content-type']).toMatch(/text\/html/);
+    });
+
     it('returns JSON 404 for unknown routes', async () => {
       await request(app).delete('/whatever').expect(404);
     });

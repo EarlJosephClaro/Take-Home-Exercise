@@ -93,8 +93,48 @@
         <ul id="recent-list" class="recent"></ul>
       </section>
 
+      <!-- Help / docs -->
+      <section class="card" aria-labelledby="help-title">
+        <details class="help">
+          <summary id="help-title">How it works &amp; API reference</summary>
+          <div class="help__body">
+            <p>
+              Every short link maps to one original URL. Opening a short link
+              records a hit for the current day (UTC) and redirects you on.
+              Stats show all-time hits plus a per-day breakdown for the last 30
+              days.
+            </p>
+
+            <h3>Endpoints</h3>
+            <ul class="help__endpoints">
+              <li>
+                <code>POST /shorten</code>
+                <span>body <code>{ "url": "https://…" }</code> → <code>201 { short_code, short_url }</code></span>
+              </li>
+              <li>
+                <code>GET /:short_code</code>
+                <span><code>302</code> redirect to the original URL (records a hit)</span>
+              </li>
+              <li>
+                <code>GET /stats/:short_code</code>
+                <span><code>200</code> total hits + 30-day daily breakdown</span>
+              </li>
+              <li>
+                <code>GET /health</code>
+                <span><code>200 { status: "ok" }</code></span>
+              </li>
+            </ul>
+
+            <p class="help__links">
+              <a href="/docs" target="_blank" rel="noopener">Interactive API docs (Swagger UI) →</a>
+              <a href="/openapi.json" target="_blank" rel="noopener">OpenAPI spec →</a>
+            </p>
+          </div>
+        </details>
+      </section>
+
       <footer class="app__footer">
-        <span>REST API demo · <span class="mono">POST /shorten</span> · <span class="mono">GET /:code</span> · <span class="mono">GET /stats/:code</span></span>
+        <span>REST API demo · <a href="/docs">API docs</a></span>
       </footer>
     </main>
 

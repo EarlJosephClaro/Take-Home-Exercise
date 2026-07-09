@@ -1,8 +1,10 @@
 import express, { type Express } from 'express';
 import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
 import type { UrlStore } from './store/urlStore';
 import type { Config } from './config';
 import { createRouter, errorHandler, notFoundHandler } from './routes';
+import { buildOpenApiSpec } from './openapi';
 
 /**
  * Static assets to expose on top of the API. `redirect: false` stops
@@ -37,6 +39,22 @@ export function createApp(store: UrlStore, config: Config): Express {
   // before the router so a missing asset falls through to the API's catch-all
   // redirect route rather than being served here.
   app.use(express.static(config.publicDir, STATIC_OPTIONS));
+
+  // API documentation: machine-readable spec + interactive Swagger UI.
+  // Registered before the router so `/docs` isn't captured by the /:short_code
+  // redirect route.
+  const openApiSpec = buildOpenApiSpec(config);
+  app.get('/openapi.json', (_req, res) => {
+    res.json(openApiSpec);
+  });
+  app.use(
+    '/docs',
+    swaggerUi.serve,
+    swaggerUi.setup(openApiSpec, {
+      customSiteTitle: 'URL Shortener API docs',
+      swaggerOptions: { defaultModelsExpandDepth: 2 },
+    }),
+  );
 
   app.use(createRouter(store, config));
 

@@ -331,9 +331,103 @@ body {
   color: var(--primary);
 }
 
+/* Help / docs */
+.help summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.help summary::before {
+  content: "▸";
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.help[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.help__body {
+  margin-top: 0.9rem;
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.help__body h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  margin: 1rem 0 0.5rem;
+}
+
+.help__body p {
+  margin: 0 0 0.5rem;
+}
+
+.help__body code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.1rem 0.35rem;
+}
+
+.help__endpoints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.help__endpoints li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.help__endpoints span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.help__links {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.help__links a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.help__links a:hover {
+  text-decoration: underline;
+}
+
 .app__footer {
   text-align: center;
   color: var(--muted);
   font-size: 0.8rem;
   margin-top: 0.5rem;
+}
+
+.app__footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.app__footer a:hover {
+  text-decoration: underline;
 }
