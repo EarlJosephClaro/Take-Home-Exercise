@@ -1,0 +1,20 @@
+# Convenience wrapper so the service can be brought up with a single command
+# and its SQLite data survives container restarts via a named volume.
+#
+#   docker compose up --build
+#
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # Public origin used to build returned short_urls. Change to your domain.
+      BASE_URL: http://localhost:3000
+      DB_PATH: /data/urls.db
+    volumes:
+      - url_data:/data
+    restart: unless-stopped
+
+volumes:
+  url_data:

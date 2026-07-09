@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Runtime data (SQLite database + WAL files)
+data/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+# Test / coverage output
+coverage/
+.vitest/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
