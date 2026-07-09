@@ -7,10 +7,10 @@ services:
   api:
     build: .
     ports:
-      - "3000:3000"
+      - "8787:8787"
     environment:
       # Public origin used to build returned short_urls. Change to your domain.
-      BASE_URL: http://localhost:3000
+      BASE_URL: http://localhost:8787
       DB_PATH: /data/urls.db
     volumes:
       - url_data:/data

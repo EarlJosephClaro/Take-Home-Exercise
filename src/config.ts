@@ -7,7 +7,8 @@ import { resolve } from 'node:path';
  * dev, tests, and Docker (see .env.example).
  */
 
-const port = Number(process.env.PORT ?? 3000);
+// Default 8787 (not 3000/3001, which collide with other local services).
+const port = Number(process.env.PORT ?? 8787);
 
 export interface Config {
   /** Port the HTTP server listens on. */

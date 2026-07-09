@@ -26,22 +26,22 @@ Requires Node.js ≥ 20.
 
 ```bash
 make install      # npm ci
-make run          # build + start on http://localhost:3000
+make run          # build + start on http://localhost:8787
 # or, for hot-reload during development:
 make dev
 ```
 
-Then open **http://localhost:3000** in a browser for the web UI, or use the API
+Then open **http://localhost:8787** in a browser for the web UI, or use the API
 directly:
 
 ```bash
-curl -X POST http://localhost:3000/shorten \
+curl -X POST http://localhost:8787/shorten \
   -H 'Content-Type: application/json' \
   -d '{"url":"https://example.com/a/very/long/link"}'
-# -> {"short_code":"aB3xK9p","short_url":"http://localhost:3000/aB3xK9p"}
+# -> {"short_code":"aB3xK9p","short_url":"http://localhost:8787/aB3xK9p"}
 
-curl -i http://localhost:3000/aB3xK9p          # 302 -> Location: https://example.com/...
-curl http://localhost:3000/stats/aB3xK9p       # total hits + 30-day breakdown
+curl -i http://localhost:8787/aB3xK9p          # 302 -> Location: https://example.com/...
+curl http://localhost:8787/stats/aB3xK9p       # total hits + 30-day breakdown
 ```
 
 > **Windows note:** if `make` isn't available, use the underlying npm scripts
@@ -53,7 +53,7 @@ All settings come from environment variables (see [`.env.example`](.env.example)
 
 | Variable     | Default                   | Purpose                                              |
 | ------------ | ------------------------- | ---------------------------------------------------- |
-| `PORT`       | `3000`                    | HTTP listen port.                                    |
+| `PORT`       | `8787`                    | HTTP listen port.                                    |
 | `BASE_URL`   | `http://localhost:$PORT`  | Origin used to build the returned `short_url`.       |
 | `DB_PATH`    | `./data/urls.db`          | SQLite file path (`/data/urls.db` in Docker).        |
 | `PUBLIC_DIR` | `<project>/public`        | Directory of static web-UI assets.                   |
@@ -75,7 +75,7 @@ Create a short code for a URL.
 **Response** — `201 Created`
 
 ```json
-{ "short_code": "aB3xK9p", "short_url": "http://localhost:3000/aB3xK9p" }
+{ "short_code": "aB3xK9p", "short_url": "http://localhost:8787/aB3xK9p" }
 ```
 
 Returns `400` if `url` is missing, not a string, malformed, longer than 2048
@@ -146,7 +146,7 @@ make docker-build && make docker-run
 docker compose up --build
 ```
 
-The service listens on `:3000`. The SQLite database lives at `/data/urls.db`
+The service listens on `:8787`. The SQLite database lives at `/data/urls.db`
 inside the container; both `docker-run` and Compose mount a named volume there
 so data survives restarts.
 

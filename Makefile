@@ -1,5 +1,5 @@
 IMAGE ?= url-shortener
-PORT  ?= 3000
+PORT  ?= 8787
 
 .PHONY: help install build test test-coverage typecheck dev run docker-build docker-run compose-up clean
 
@@ -33,7 +33,7 @@ docker-build: ## Build the Docker image
 	docker build -t $(IMAGE) .
 
 docker-run: docker-build ## Build and run the container end-to-end
-	docker run --rm -p $(PORT):3000 -v url_shortener_data:/data $(IMAGE)
+	docker run --rm -p $(PORT):8787 -v url_shortener_data:/data $(IMAGE)
 
 compose-up: ## Bring the service up via docker compose
 	docker compose up --build

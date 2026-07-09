@@ -28,7 +28,7 @@ FROM node:20-bookworm-slim AS runtime
 WORKDIR /app
 
 ENV NODE_ENV=production \
-    PORT=3000 \
+    PORT=8787 \
     DB_PATH=/data/urls.db
 
 # Persistent, writable location for the SQLite file, owned by the node user.
@@ -40,11 +40,11 @@ COPY public ./public
 COPY package.json ./
 
 USER node
-EXPOSE 3000
+EXPOSE 8787
 VOLUME ["/data"]
 
 # Use the /health endpoint for container health.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||3000)+'/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+  CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||8787)+'/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
 CMD ["node", "dist/server.js"]
