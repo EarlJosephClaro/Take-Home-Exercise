@@ -5,6 +5,13 @@ import type { Config } from './config';
 import { createRouter, errorHandler, notFoundHandler } from './routes';
 
 /**
+ * Static assets to expose on top of the API. `redirect: false` stops
+ * express.static from turning a bare directory path into a 301, and `index`
+ * serves the UI at `/`.
+ */
+const STATIC_OPTIONS = { index: 'index.html', redirect: false } as const;
+
+/**
  * Assemble the Express application from an injected store + config.
  *
  * Kept separate from `server.ts` (which owns the database connection and the
@@ -25,6 +32,11 @@ export function createApp(store: UrlStore, config: Config): Express {
   }
 
   app.use(express.json({ limit: '16kb' }));
+
+  // Serve the web UI (index.html at `/`, plus styles.css / app.js). Registered
+  // before the router so a missing asset falls through to the API's catch-all
+  // redirect route rather than being served here.
+  app.use(express.static(config.publicDir, STATIC_OPTIONS));
 
   app.use(createRouter(store, config));
 

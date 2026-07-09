@@ -11,20 +11,9 @@ export function createRouter(store: UrlStore, config: Config): Router {
   const router = Router();
 
   // Liveness/readiness probe (used by the Docker HEALTHCHECK).
+  // The web UI itself is served at `/` by express.static (see app.ts).
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
-  });
-
-  // Small landing payload so hitting the root isn't a 404.
-  router.get('/', (_req, res) => {
-    res.json({
-      service: 'url-shortener',
-      endpoints: {
-        shorten: 'POST /shorten { url }',
-        redirect: 'GET /:short_code',
-        stats: 'GET /stats/:short_code',
-      },
-    });
   });
 
   // POST /shorten — create a short code for a URL.

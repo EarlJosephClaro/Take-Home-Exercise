@@ -2,7 +2,8 @@
 
 A small REST API that shortens URLs, redirects short codes to their target, and
 reports per-link click statistics. Built with **TypeScript + Express** and
-backed by **SQLite**.
+backed by **SQLite**. Ships with a lightweight **web UI** (served at `/`) for
+trying the API from a browser.
 
 ---
 
@@ -30,7 +31,8 @@ make run          # build + start on http://localhost:3000
 make dev
 ```
 
-Then:
+Then open **http://localhost:3000** in a browser for the web UI, or use the API
+directly:
 
 ```bash
 curl -X POST http://localhost:3000/shorten \
@@ -49,11 +51,12 @@ curl http://localhost:3000/stats/aB3xK9p       # total hits + 30-day breakdown
 
 All settings come from environment variables (see [`.env.example`](.env.example)):
 
-| Variable   | Default                   | Purpose                                              |
-| ---------- | ------------------------- | ---------------------------------------------------- |
-| `PORT`     | `3000`                    | HTTP listen port.                                    |
-| `BASE_URL` | `http://localhost:$PORT`  | Origin used to build the returned `short_url`.       |
-| `DB_PATH`  | `./data/urls.db`          | SQLite file path (`/data/urls.db` in Docker).        |
+| Variable     | Default                   | Purpose                                              |
+| ------------ | ------------------------- | ---------------------------------------------------- |
+| `PORT`       | `3000`                    | HTTP listen port.                                    |
+| `BASE_URL`   | `http://localhost:$PORT`  | Origin used to build the returned `short_url`.       |
+| `DB_PATH`    | `./data/urls.db`          | SQLite file path (`/data/urls.db` in Docker).        |
+| `PUBLIC_DIR` | `<project>/public`        | Directory of static web-UI assets.                   |
 
 ---
 
@@ -112,6 +115,24 @@ Redirects to the original URL and records a hit.
 ### `GET /health`
 
 `200 OK` → `{ "status": "ok" }`. Used by the Docker health check.
+
+---
+
+## Web UI
+
+A dependency-free single page is served at `/` (static files in
+[`public/`](public/)). It lets you:
+
+- shorten a URL and copy / open the resulting short link;
+- look up stats by short code or full short URL, showing total hits and a
+  30-day bar chart;
+- keep a list of recently created links (stored in `localStorage`, client-side
+  only).
+
+It's plain HTML/CSS/vanilla JS with no build step or external assets, so it adds
+nothing to the dependency surface and works offline once loaded. Static requests
+are served before the API router; anything that isn't a real asset falls through
+to the `/:short_code` redirect route.
 
 ---
 
@@ -253,6 +274,7 @@ src/
     shortCode.ts       base62 code generation
     validation.ts      URL validation & normalization
     stats.ts           UTC day math + dense daily series
+public/                web UI (index.html, styles.css, app.js) served at /
 tests/
   unit/                shortCode, validation, stats, urlStore
   integration/         full HTTP surface via supertest

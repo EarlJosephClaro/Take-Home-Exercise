@@ -36,6 +36,7 @@ RUN mkdir -p /data && chown node:node /data
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY public ./public
 COPY package.json ./
 
 USER node

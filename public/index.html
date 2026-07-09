@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>"
+    />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>🔗 URL Shortener</h1>
+        <p class="app__subtitle">Shorten a link, then track how often it's used.</p>
+      </header>
+
+      <!-- Shorten -->
+      <section class="card" aria-labelledby="shorten-title">
+        <h2 id="shorten-title">Shorten a URL</h2>
+        <form id="shorten-form" class="row" autocomplete="off">
+          <input
+            id="url-input"
+            class="input"
+            type="url"
+            name="url"
+            placeholder="https://example.com/a/very/long/link"
+            required
+            aria-label="URL to shorten"
+          />
+          <button class="btn btn--primary" type="submit">Shorten</button>
+        </form>
+        <p id="shorten-error" class="msg msg--error" hidden></p>
+
+        <div id="shorten-result" class="result" hidden>
+          <span class="result__label">Short link</span>
+          <div class="result__row">
+            <a id="short-link" class="result__link" href="#" target="_blank" rel="noopener"></a>
+            <button id="copy-btn" class="btn btn--ghost" type="button">Copy</button>
+            <button id="stats-btn" class="btn btn--ghost" type="button">View stats</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="card" aria-labelledby="stats-title">
+        <h2 id="stats-title">Look up stats</h2>
+        <form id="stats-form" class="row" autocomplete="off">
+          <input
+            id="code-input"
+            class="input"
+            type="text"
+            placeholder="short code or full short URL"
+            required
+            aria-label="Short code"
+          />
+          <button class="btn btn--primary" type="submit">Get stats</button>
+        </form>
+        <p id="stats-error" class="msg msg--error" hidden></p>
+
+        <div id="stats-result" class="stats" hidden>
+          <div class="stats__summary">
+            <div class="stat">
+              <span class="stat__value" id="stat-total">0</span>
+              <span class="stat__label">total hits</span>
+            </div>
+            <div class="stats__meta">
+              <div>
+                <span class="stats__meta-label">Code</span>
+                <span id="stat-code" class="mono"></span>
+              </div>
+              <div>
+                <span class="stats__meta-label">Original</span>
+                <a id="stat-original" class="mono" href="#" target="_blank" rel="noopener"></a>
+              </div>
+              <div>
+                <span class="stats__meta-label">Created</span>
+                <span id="stat-created" class="mono"></span>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="stats__chart-title">Last 30 days</h3>
+          <div id="chart" class="chart" role="img" aria-label="Daily hits for the last 30 days"></div>
+        </div>
+      </section>
+
+      <!-- Recent (local only) -->
+      <section id="recent-section" class="card" aria-labelledby="recent-title" hidden>
+        <h2 id="recent-title">Recent links <span class="hint">(this browser only)</span></h2>
+        <ul id="recent-list" class="recent"></ul>
+      </section>
+
+      <footer class="app__footer">
+        <span>REST API demo · <span class="mono">POST /shorten</span> · <span class="mono">GET /:code</span> · <span class="mono">GET /stats/:code</span></span>
+      </footer>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import type { Express } from 'express';
@@ -10,6 +11,7 @@ const TEST_CONFIG: Config = {
   port: 0,
   baseUrl: 'http://short.test',
   dbPath: ':memory:',
+  publicDir: resolve(__dirname, '../../public'),
 };
 
 describe('URL shortener API', () => {
@@ -113,9 +115,15 @@ describe('URL shortener API', () => {
       expect(res.body.status).toBe('ok');
     });
 
-    it('describes itself at the root', async () => {
+    it('serves the web UI at the root', async () => {
       const res = await request(app).get('/').expect(200);
-      expect(res.body.service).toBe('url-shortener');
+      expect(res.headers['content-type']).toMatch(/text\/html/);
+      expect(res.text).toContain('URL Shortener');
+    });
+
+    it('serves static assets (app.js)', async () => {
+      const res = await request(app).get('/app.js').expect(200);
+      expect(res.headers['content-type']).toMatch(/javascript/);
     });
 
     it('returns JSON 404 for unknown routes', async () => {
